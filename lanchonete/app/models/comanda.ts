@@ -15,13 +15,13 @@ export default class Comanda extends BaseModel {
   declare clienteId: number
 
   @column()
-  declare formapagamentoId: number
+  declare forma_pagamentoId: number
 
   @column()
-  declare dataPagamento: DateTime
+  declare dataPagamento: number
 
   @column()
-  declare data: DateTime
+  declare data: number
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

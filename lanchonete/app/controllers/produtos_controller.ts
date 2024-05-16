@@ -8,11 +8,16 @@ export default class ProdutosController {
 
         const page = request.input('page', 1)
         const perpage = request.input('perpage', 10)
-        return await Produto.query().preload('tipo').paginate(page, perpage)
+        return await Produto.query().paginate(page, perpage)
     }
 
     async show({params}: HttpContext) {
-        return await Produto.findOrFail(params.id)
+        return await Produto.query()
+                            .where('id', params.id)
+                            .preload('tipo')
+                            .preload('ingredientes')
+                            .first()
+        
     }
 
     async store({request}: HttpContext) {

@@ -2,40 +2,33 @@ import type { HttpContext } from '@adonisjs/core/http'
 import FormaPagamento from '../models/forma_pagamento.js'
 
 export default class FormaPagamentosController {
+  async index({ request }: HttpContext) {
+    const page = request.input('page', 1)
+    const perpage = request.input('perpage', 10)
+    return await FormaPagamento.query().preload('comandas').paginate(page, perpage)
+  }
 
-    async index({ request }: HttpContext) {
+  async show({ params }: HttpContext) {
+    return await FormaPagamento.findOrFail(params.id)
+  }
 
-        const page = request.input('page', 1)
-        const perpage = request.input('perpage', 10)
-        return await FormaPagamento.query().paginate(page, perpage)
-    }
+  async store({ request }: HttpContext) {
+    const dados = request.only(['nome'])
+    return await FormaPagamento.create(dados)
+  }
 
-    async show({ params }: HttpContext) {
-        return await FormaPagamento.findOrFail(params.id)
-    }
+  async update({ params, request }: HttpContext) {
+    const formapagamento = await FormaPagamento.findOrFail(params.id)
+    const dados = request.only(['nome'])
 
-    async store({ request }: HttpContext) {
-        const dados = request.only(['nome'])
-        return await FormaPagamento.create(dados)
-    }
+    formapagamento.merge(dados)
+    return await formapagamento.save()
+  }
 
-    async update({ params, request }: HttpContext) {
+  async destroy({ params }: HttpContext) {
+    const formapagamento = await FormaPagamento.findOrFail(params.id)
 
-        const forma_pagamento = await FormaPagamento.findOrFail(params.id)
-        const dados = request.only(['nome'])
-
-        forma_pagamento.merge(dados)
-        return await forma_pagamento.save()
-
-    }
-
-    async destroy({ params }: HttpContext) {
-        const forma_pagamento = await FormaPagamento.findOrFail(params.id)
-
-        await forma_pagamento.delete()
-        return { msg: 'Registro deletado com sucesso', forma_pagamento }
-
-    }
-
-
+    await formapagamento.delete()
+    return { msg: 'Registro deletado com sucesso', formapagamento }
+  }
 }

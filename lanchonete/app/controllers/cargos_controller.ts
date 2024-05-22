@@ -2,39 +2,33 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Cargo from '../models/cargo.js'
 
 export default class CargosController {
+  async index({ request }: HttpContext) {
+    const page = request.input('page', 1)
+    const perpage = request.input('perpage', 10)
+    return await Cargo.query().preload('funcionarios').paginate(page, perpage)
+  }
 
-    async index({ request }: HttpContext) {
+  async show({ params }: HttpContext) {
+    return await Cargo.query().where('id', params.id).preload('funcionarios').firstOrFail()
+  }
 
-        const page = request.input('page', 1)
-        const perpage = request.input('perpage', 10)
-        return await Cargo.query().paginate(page, perpage)
-    }
+  async store({ request }: HttpContext) {
+    const dados = request.only(['nome'])
+    return await Cargo.create(dados)
+  }
 
-    async show({ params }: HttpContext) {
-        return await Cargo.findOrFail(params.id)
-    }
+  async update({ params, request }: HttpContext) {
+    const cargo = await Cargo.findOrFail(params.id)
+    const dados = request.only(['nome'])
 
-    async store({ request }: HttpContext) {
-        const dados = request.only(['nome'])
-        return await Cargo.create(dados)
-    }
+    cargo.merge(dados)
+    return await cargo.save()
+  }
 
-    async update({ params, request }: HttpContext) {
+  async destroy({ params }: HttpContext) {
+    const cargo = await Cargo.findOrFail(params.id)
 
-        const cargo = await Cargo.findOrFail(params.id)
-        const dados = request.only(['nome'])
-
-        cargo.merge(dados)
-        return await cargo.save()
-
-    }
-
-    async destroy({ params }: HttpContext) {
-        const cargo = await Cargo.findOrFail(params.id)
-
-        await cargo.delete()
-        return { msg: 'Registro deletado com sucesso', cargo }
-
-    }
-
+    await cargo.delete()
+    return { msg: 'Registro deletado com sucesso', cargo }
+  }
 }

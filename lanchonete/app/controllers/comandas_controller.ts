@@ -2,41 +2,53 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Comanda from '../models/comanda.js'
 
 export default class ComandasController {
+  async index({ request }: HttpContext) {
+    const page = request.input('page', 1)
+    const perpage = request.input('perpage', 10)
+    return await Comanda.query().paginate(page, perpage)
+  }
 
-    async index({ request }: HttpContext) {
+  async show({ params }: HttpContext) {
+    return await Comanda.query()
+      .where('id', params.id)
+      .preload('funcionario')
+      .preload('cliente')
+      .preload('produtos')
+      .preload('formaDePagamento')
+      .firstOrFail()
+  }
 
-        const page = request.input('page', 1)
-        const perpage = request.input('perpage', 10)
-        return await Comanda.query().paginate(page, perpage)
-    }
+  async store({ request }: HttpContext) {
+    const dados = request.only([
+      'mesa',
+      'funcionarioId',
+      'clienteId',
+      'formapagamentoId',
+      'dataPagamento',
+      'data',
+    ])
+    return await Comanda.create(dados)
+  }
 
-    async show({ params }: HttpContext) {
-        return await Comanda.findOrFail(params.id)
-    }
+  async update({ params, request }: HttpContext) {
+    const comanda = await Comanda.findOrFail(params.id)
+    const dados = request.only([
+      'mesa',
+      'funcionarioId',
+      'clienteId',
+      'formapagamentoId',
+      'dataPagamento',
+      'data',
+    ])
 
-    async store({ request }: HttpContext) {
-        const dados = request.only(['mesa', 'funcionarioId', 'clienteId', 'formapagamentoId', 'dataPagamento', 'data'])
-        return await Comanda.create(dados)
-    }
+    comanda.merge(dados)
+    return await comanda.save()
+  }
 
-    async update({ params, request }: HttpContext) {
+  async destroy({ params }: HttpContext) {
+    const comanda = await Comanda.findOrFail(params.id)
 
-        const comanda = await Comanda.findOrFail(params.id)
-        const dados = request.only(['mesa', 'funcionarioId', 'clienteId', 'formapagamentoId', 'dataPagamento', 'data'])
-
-        comanda.merge(dados)
-        return await comanda.save()
-
-    }
-
-    async destroy({ params }: HttpContext) {
-        const comanda = await Comanda.findOrFail(params.id)
-
-        await comanda.delete()
-        return { msg: 'Registro deletado com sucesso', comanda }
-
-    }
-
-
-
+    await comanda.delete()
+    return { msg: 'Registro deletado com sucesso', comanda }
+  }
 }

@@ -1,5 +1,10 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
+import { BaseModel, belongsTo, column, manyToMany } from '@adonisjs/lucid/orm'
+import Cliente from './cliente.js'
+import Funcionario from './funcionario.js'
+import Produto from './produto.js'
+import FormaPagamento from './forma_pagamento.js'
 
 export default class Comanda extends BaseModel {
   @column({ isPrimary: true })
@@ -28,4 +33,18 @@ export default class Comanda extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+
+  @belongsTo(() => Cliente)
+  declare cliente: BelongsTo<typeof Cliente>
+
+  @belongsTo(() => Funcionario)
+  declare funcionario: BelongsTo<typeof Funcionario>
+
+  @belongsTo(() => FormaPagamento)
+  declare formaDePagamento: BelongsTo<typeof FormaPagamento>
+
+  @manyToMany(() => Produto, {
+    pivotTable: 'produto_comandas',
+  })
+  declare produtos: ManyToMany<typeof Produto>
 }

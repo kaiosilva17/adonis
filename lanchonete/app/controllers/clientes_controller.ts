@@ -2,40 +2,33 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Cliente from '../models/cliente.js'
 
 export default class ClientesController {
+  async index({ request }: HttpContext) {
+    const page = request.input('page', 1)
+    const perpage = request.input('perpage', 10)
+    return await Cliente.query().preload('comanda').paginate(page, perpage)
+  }
 
-    async index({ request }: HttpContext) {
+  async show({ params }: HttpContext) {
+    return await Cliente.query().where('id', params.id).preload('comanda').firstOrFail()
+  }
 
-        const page = request.input('page', 1)
-        const perpage = request.input('perpage', 10)
-        return await Cliente.query().paginate(page, perpage)
-    }
+  async store({ request }: HttpContext) {
+    const dados = request.only(['nome', 'cpf', 'telefone', 'email'])
+    return await Cliente.create(dados)
+  }
 
-    async show({ params }: HttpContext) {
-        return await Cliente.findOrFail(params.id)
-    }
+  async update({ params, request }: HttpContext) {
+    const cliente = await Cliente.findOrFail(params.id)
+    const dados = request.only(['nome', 'cpf', 'telefone', 'email'])
 
-    async store({ request }: HttpContext) {
-        const dados = request.only(['nome', 'cpf', 'telefone', 'email'])
-        return await Cliente.create(dados)
-    }
+    cliente.merge(dados)
+    return await cliente.save()
+  }
 
-    async update({ params, request }: HttpContext) {
+  async destroy({ params }: HttpContext) {
+    const cliente = await Cliente.findOrFail(params.id)
 
-        const cliente = await Cliente.findOrFail(params.id)
-        const dados = request.only(['nome', 'cpf', 'telefone', 'email'])
-
-        cliente.merge(dados)
-        return await cliente.save()
-
-    }
-
-    async destroy({ params }: HttpContext) {
-        const cliente = await Cliente.findOrFail(params.id)
-
-        await cliente.delete()
-        return { msg: 'Registro deletado com sucesso', cliente }
-
-    }
-
-
+    await cliente.delete()
+    return { msg: 'Registro deletado com sucesso', cliente }
+  }
 }

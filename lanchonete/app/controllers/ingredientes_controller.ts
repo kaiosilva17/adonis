@@ -2,40 +2,33 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Ingrediente from '../models/ingrediente.js'
 
 export default class IngredientesController {
+  async index({ request }: HttpContext) {
+    const page = request.input('page', 1)
+    const perpage = request.input('perpage', 10)
+    return await Ingrediente.query().preload('produtos').paginate(page, perpage)
+  }
 
-    async index({ request }: HttpContext) {
+  async show({ params }: HttpContext) {
+    return await Ingrediente.query().where('id', params.id).preload('produtos').firstOrFail()
+  }
 
-        const page = request.input('page', 1)
-        const perpage = request.input('perpage', 10)
-        return await Ingrediente.query().paginate(page, perpage)
-    }
+  async store({ request }: HttpContext) {
+    const dados = request.only(['nome', 'descricao'])
+    return await Ingrediente.create(dados)
+  }
 
-    async show({ params }: HttpContext) {
-        return await Ingrediente.findOrFail(params.id)
-    }
+  async update({ params, request }: HttpContext) {
+    const ingrediente = await Ingrediente.findOrFail(params.id)
+    const dados = request.only(['nome', 'descricao'])
 
-    async store({ request }: HttpContext) {
-        const dados = request.only(['nome', 'descricao'])
-        return await Ingrediente.create(dados)
-    }
+    ingrediente.merge(dados)
+    return await ingrediente.save()
+  }
 
-    async update({ params, request }: HttpContext) {
+  async destroy({ params }: HttpContext) {
+    const ingrediente = await Ingrediente.findOrFail(params.id)
 
-        const ingrediente = await Ingrediente.findOrFail(params.id)
-        const dados = request.only(['nome', 'descricao'])
-
-        ingrediente.merge(dados)
-        return await ingrediente.save()
-
-    }
-
-    async destroy({ params }: HttpContext) {
-        const ingrediente = await Ingrediente.findOrFail(params.id)
-
-        await ingrediente.delete()
-        return { msg: 'Registro deletado com sucesso', ingrediente }
-
-    }
-
-
+    await ingrediente.delete()
+    return { msg: 'Registro deletado com sucesso', ingrediente }
+  }
 }

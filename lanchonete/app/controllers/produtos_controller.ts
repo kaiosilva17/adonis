@@ -1,47 +1,39 @@
- import type { HttpContext } from '@adonisjs/core/http'
+import type { HttpContext } from '@adonisjs/core/http'
 
-import Produto from "../models/produto.js"
+import Produto from '../models/produto.js'
 
 export default class ProdutosController {
+  async index({ request }: HttpContext) {
+    const page = request.input('page', 1)
+    const perpage = request.input('perpage', 10)
+    return await Produto.query().paginate(page, perpage)
+  }
 
-    async index({request}: HttpContext) {
+  async show({ params }: HttpContext) {
+    return await Produto.query()
+      .where('id', params.id)
+      .preload('tipo')
+      .preload('ingredientes')
+      .first()
+  }
 
-        const page = request.input('page', 1)
-        const perpage = request.input('perpage', 10)
-        return await Produto.query().paginate(page, perpage)
-    }
+  async store({ request }: HttpContext) {
+    const dados = request.only(['nome', 'preco', 'tamanho', 'tipoId'])
+    return await Produto.create(dados)
+  }
 
-    async show({params}: HttpContext) {
-        return await Produto.query()
-                            .where('id', params.id)
-                            .preload('tipo')
-                            .preload('ingredientes')
-                            .first()
-        
-    }
+  async update({ params, request }: HttpContext) {
+    const produto = await Produto.findOrFail(params.id)
+    const dados = request.only(['nome', 'preco', 'tamanho', 'tipoId'])
 
-    async store({request}: HttpContext) {
-        const dados = request.only(['nome', 'preco', 'tamanho', 'tipoId'])
-        return await Produto.create(dados)
-    }
+    produto.merge(dados)
+    return await produto.save()
+  }
 
-    async update({params, request}: HttpContext) {
-       
-        const produto = await Produto.findOrFail(params.id)
-        const dados = request.only(['nome', 'preco', 'tamanho', 'tipoId'])
+  async destroy({ params }: HttpContext) {
+    const produto = await Produto.findOrFail(params.id)
 
-        produto.merge(dados)
-        return await produto.save()
-
-    }
-
-    async destroy({params}: HttpContext) {
-        const produto = await Produto.findOrFail(params.id)
-
-        await produto.delete()
-        return {msg: 'Registro deletado com sucesso', produto}
-        
-    }
-
-
+    await produto.delete()
+    return { msg: 'Registro deletado com sucesso', produto }
+  }
 }

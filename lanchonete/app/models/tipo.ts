@@ -16,6 +16,6 @@ export default class Tipo extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
-  @hasMany(()=>Produto)
+  @hasMany(() => Produto)
   declare produtos: HasMany<typeof Produto>
 }
